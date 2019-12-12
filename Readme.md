@@ -7,9 +7,13 @@ Instruções para roda o projeto
 
 dentro do arquivo front:
 
+$npm install
+
 $nodemon server.js 
 
 dentro do arquivo server:
+
+$npm install
 
 $node app.js
 
