@@ -83,9 +83,25 @@
         return (/Null|Undefined/g).test(this.typeOfObject(object))
     };
 
+    DOM.get = function(url, callback) {
+        const ajax = new XMLHttpRequest();
+        ajax.open('GET', url);
+        ajax.send();
+        ajax.addEventListener('readystatechange', callback);
+    }
+
+    DOM.post = function(url, req, callback, verb = 'POST') {
+        const ajax = new XMLHttpRequest();
+        ajax.open(verb, url);
+        ajax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        ajax.send(req);
+        ajax.onreadystatechange = callback;
+    }
+
+    DOM.delete = function(url, req, callback) {
+        DOM.post(url, req, callback, 'DELETE');
+    }
 
     wind.DOM = DOM;
-
-
 
 })(window, document)

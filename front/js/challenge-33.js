@@ -9,57 +9,35 @@
                 this.initEvent();
             },
             initCar: function initCar() {
-                app.get(this.allCar);
+                DOM.get('http://localhost:3000/car', this.allCar);
                 app.createButtonRmCar();
             },
             allCar: function allCar() {
-                if (app.isRequestOk(this)) {
-                    const data = JSON.parse(this.responseText);
-                    data.forEach(function(car) {
-                        app.getCar(car);
-                    });
-                }
+                if (!app.isRequestOk(this)) return
+                const data = JSON.parse(this.responseText);
+                data.forEach(function(car) {
+                    app.getCar(car);
+                });
             },
             initEvent: function() {
                 var $button = new DOM('[data-js="button"]');
-                $button.on('click', this.post);
+                $button.on('click', this.click);
             },
-            post: function post(event) {
+            click: function(event) {
                 event.preventDefault();
-                var $inputs = new DOM('[data-js="input"]');
+                const $inputs = new DOM('[data-js="input"]');
                 const car = app.setCar($inputs);
-                const ajax = new XMLHttpRequest();
-                ajax.open('POST', 'http://localhost:3000/car');
-                ajax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                ajax.send('image=' + car.img + '&brandModel=' + car.marca + '&year=' + car.ano + '&plate=' + car.placa + '&color=' + car.cor);
-                ajax.onreadystatechange = function() {
-                    if (app.isRequestOk(ajax)) {
-                        app.addCar(JSON.parse(ajax.responseText), $inputs)
-                    }
-                }
+                const req = 'image=' + car.img + '&brandModel=' + car.marca + '&year=' + car.ano + '&plate=' + car.placa + '&color=' + car.cor;
+                DOM.post('http://localhost:3000/car', req, function() {
+                    if (app.isRequestOk(this))
+                        app.addCar(JSON.parse(this.responseText), $inputs)
+                })
             },
             addCar: function(data, $inputs) {
-                if (data.message === 'success') {
-                    app.get(app.lastCar);
-                    app.createButtonRmCar();
-                    app.clearInputs($inputs);
-                }
-            },
-            get: function get(func) {
-                const ajax = new XMLHttpRequest();
-                ajax.open('GET', 'http://localhost:3000/car');
-                ajax.send();
-                ajax.addEventListener('readystatechange', func);
-            },
-            delete: function(placa) {
-                const ajax = new XMLHttpRequest();
-                ajax.open('DELETE', 'http://localhost:3000/car');
-                ajax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                ajax.send('&plate=' + placa);
-                ajax.onreadystatechange = function() {
-                    if (app.isRequestOk(ajax))
-                        console.log(ajax.responseText)
-                }
+                if (data.message !== 'success') return
+                DOM.get('http://localhost:3000/car', app.lastCar);
+                app.createButtonRmCar();
+                app.clearInputs($inputs);
             },
             lastCar: function lastCar() {
                 if (app.isRequestOk(this)) {
@@ -129,15 +107,11 @@
                 var $tabel = this.parentNode.parentNode.parentNode;
                 var $line = this.parentNode.parentNode;
                 var $placa = $line.firstElementChild.nextSibling.nextSibling.nextSibling;
-                app.delete($placa.innerHTML)
+                DOM.delete('http://localhost:3000/car', '&plate=' + $placa.innerHTML, () => (app.isRequestOk(this)) ? console.log(this.responseText) : '')
                 $tabel.removeChild($line);
             },
             companyInfo: function() {
-                var ajax = new XMLHttpRequest();
-                var company = "company.json";
-                ajax.open('GET', company, true)
-                ajax.send();
-                ajax.addEventListener('readystatechange', this.handleReadyStateChange, false);
+                DOM.get('company.json', this.handleReadyStateChange);
             },
             handleReadyStateChange: function() {
                 if (app.isRequestOk(this))
@@ -149,11 +123,10 @@
             getDate: function getDate(text) {
                 var $name = new DOM('[data-js="name"]');
                 var $phone = new DOM('[data-js="phone"]');
-                if (text) {
-                    var date = JSON.parse(text);
-                    $name.get()[0].innerHTML = date.name;
-                    $phone.get()[0].innerHTML = date.phone;
-                }
+                if (!text) return '';
+                var date = JSON.parse(text);
+                $name.get()[0].innerHTML = date.name;
+                $phone.get()[0].innerHTML = date.phone;
             }
         };
     })()
